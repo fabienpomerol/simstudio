@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
-		 xmlns:s="library://ns.adobe.com/flex/spark" 
-		 xmlns:mx="library://ns.adobe.com/flex/mx" initialize="init()" width="1254" height="556">
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="1254" height="556" initialize="init()">
 	<fx:Declarations>
 		<!-- Placer ici les éléments non visuels (services et objets de valeur, par exemple). -->
 	</fx:Declarations>
@@ -41,24 +42,109 @@
 			private var _imgCheckWhite:String = "assets/check_blanc.png";
 			private var _imgCheckGreen:String = "assets/check_vert.png";
 			
+			
+			
+			
+			protected function getDefaultUserResultHandler(event:MouseEvent):void
+			{
+				Alert.show("Utilisateur modifié");
+			}
+			
 			private function init():void{
-				//@todo refactored
-//				var ro:RemoteObject = new RemoteObject();
-//				ro.destination = "sessionDAO";
-//				
-//				ro.getSessionAttribute.addEventListener("result", getUserResultHandler);	
-//				ro.getSessionAttribute.addEventListener("fault", faultHandler);	
-//				ro.getSessionAttribute('user');
+				refresh();
+			}
+			
+			protected function refresh ():void{
+				var hbox:VBox = myVboxCollaborator as VBox;
+				hbox.removeAllChildren();
+				var hbox2:VBox = myVboxAsking as VBox;
+				hbox2.removeAllChildren();
 				
-				addCollaborator(1, 'Jean bon');
-				addCollaborator(2, 'Jean Ondfd');
-				addCollaborator(3, 'Jean bon2');
-				addCollaborator(4, 'Jean bon3');
-				addCollaborator(5, 'Jean bon4');
-				addCollaborator(6, 'Jean bon5');
-				addCollaboratorAsking(5, 'Coco Shaker1');
-				addCollaboratorAsking(6, 'Coco Shaker2');
-				addCollaboratorAsking(7, 'Coco Shaker3');
+				var ro:RemoteObject = new RemoteObject();
+				ro.destination = "sessionDAO";
+				
+				ro.getSessionAttribute.addEventListener("result", getUserResultHandler);	
+				ro.getSessionAttribute.addEventListener("fault", faultHandler);	
+				ro.getSessionAttribute('user');				
+			}
+			
+			protected function processNextItemAskCollaborator(userId:int, ask1:Array, ask2:Array):void{
+				if(ask1.length <= 0 && ask2.length<=0){
+					//Alert.show("Groups empty");
+				}else{
+					try{
+						if(ask1.length > 0)
+						{
+							var item:Object = ask1.pop();
+							addCollaboratorAsking(userId, item.id, item.firstName, item.lastName);
+							processNextItemAskCollaborator(userId, ask1, ask2);
+						}
+						else
+						{
+							var item:Object = ask2.pop();
+							addCollaboratorAsking(userId, item.id, item.firstName, item.lastName);
+							processNextItemAskCollaborator(userId, ask1, ask2);
+						}
+						
+					}catch(err:Error)
+					{
+						Alert.show('2 :'+err.message);
+					}
+					
+				}	
+			}
+			
+			protected function processNextItemCollaborator(userId:int, collab1:Array, collab2:Array):void{
+				if(collab1.length <= 0 && collab2.length<=0){
+					//Alert.show("Groups empty");
+				}else{
+					try{
+						if(collab1.length > 0)
+						{
+							var item = collab1.pop();
+							addCollaborator(userId, item.id, item.firstName, item.lastName);
+							processNextItemCollaborator(userId, collab1, collab2);
+						}
+						else
+						{
+							
+							var item:Object = collab2.pop();
+							addCollaborator(userId, item.id, item.firstName, item.lastName);
+							processNextItemCollaborator(userId, collab1, collab2);
+						}
+						
+					}catch(err:Error)
+					{
+						Alert.show('3 :'+err.message);
+					}
+					
+				}	
+			}
+			
+			private function getUserResultHandler(result:ResultEvent):void{
+				
+				try{
+					var user = result.result;
+					var usersAsking = user.usersForIdUser1.toArray();
+					var usersAsking2 = user.usersForIdUser2.toArray();
+					
+					var userFriend = user.usersForIdUser1_1.toArray();
+					var userFriend2 = user.usersForIdUser2_1.toArray();
+					
+					processNextItemAskCollaborator(user.id, usersAsking, usersAsking2);
+					processNextItemCollaborator(user.id, userFriend, userFriend2);
+				}
+				catch(err:Error){
+					Alert.show("GetUserResultHandlerErr : "+err.message);
+				}
+				
+				
+			}
+			
+			
+			protected function faultHandler(e:ResultEvent):void
+			{
+				Alert.show('Ooops!! It seem that you have an asyncprocess error.');
 			}
 			
 			protected function btnFindCollaborator_clickHandler(event:MouseEvent):void
@@ -67,69 +153,20 @@
 				PopUpManager.centerPopUp(pop);
 			}
 			
-			protected function processNextItem(groups:Array):void{
-				if(groups.length <= 0){
-					//Alert.show("Groups empty");
-				}else{
-					try{
-						var item:Object = groups.pop();
-						var ro:RemoteObject = new RemoteObject;
-						ro.destination = "groupDAO";
-						function asyncProcessComplete(e:ResultEvent):void{
-							ro.removeEventListener("result",asyncProcessComplete)
-							var mess = e.result;
-							try{
-								addCollaborator(item.id, item.name);
-							}catch(err:Error)
-							{
-								Alert.show("Erreur pour addGroup : "+item.name+" "+err.message);
-							}
-							processNextItem(groups);
-						}
-						ro.getLastGroupMessage.addEventListener("result",asyncProcessComplete);
-						ro.getLastGroupMessage.addEventListener("fault", faultHandler);
-						ro.getLastGroupMessage(item.id);
-					}catch(err:Error)
-					{
-						Alert.show(err.message);
-					}
-					
-				}	
-			}
 			
-			protected function faultHandler(e:ResultEvent):void
-			{
-				Alert.show('Ooops!! It seem that you have an asyncprocess error.');
-			}
-			
-			private function getUserResultHandler(result:ResultEvent):void{
-				
-				try{
-					var user:valueObjects.User = result.result as User;
-					//Alert.show(user.groups_2.getItemAt(1)+"");
-					var groups = user.groups_2.toArray();
-					
-					processNextItem(groups);
-					//var gr:Array;
-					
-				}
-				catch(err:Error){
-					Alert.show(err.message);
-				}
-				
-			}
-			
-			private function addCollaborator(id:int, name:String):void {
+			private function addCollaborator(userID:int, id:int, fname:String, lname:String):void {
 				var imageEdit:Image = new Image();
 				imageEdit.width=35;
 				imageEdit.height=34;
 				imageEdit.name=id.toString();
 				imageEdit.load(this._imgEditOut);
 				imageEdit.buttonMode=true;
-				imageEdit.addEventListener(MouseEvent.CLICK, OpenEditPopUp);
+				imageEdit.addEventListener(MouseEvent.CLICK, function OpenEditPop(e:Event):void{
+					OpenEditPopUp(e, id, userID);
+				});
 				
 				var groupLabel:Label = new Label();
-				groupLabel.text = name;
+				groupLabel.text = id+" : "+fname+" "+lname;
 				groupLabel.setStyle("fontSize", 12);
 				groupLabel.setStyle("fontWeight", "bold");
 				groupLabel.x = 50;
@@ -161,10 +198,9 @@
 				myVboxCollaborator.addChild(myHbox);
 			}
 			
-			private function addCollaboratorAsking(id:int, name:String):void {
-				
+			private function addCollaboratorAsking(userId:int, id:int, fname:String, lname:String):void {
 				var groupLabel:Label = new Label();
-				groupLabel.text = name;
+				groupLabel.text = id +" : "+fname+" "+lname;
 				groupLabel.name="label";
 				groupLabel.setStyle("fontSize", 12);
 				groupLabel.setStyle("fontWeight", "bold");
@@ -179,7 +215,25 @@
 				btnCheck.name=id.toString();
 				btnCheck.load(this._imgCheckWhite);
 				btnCheck.buttonMode=true;
-				btnCheck.addEventListener(MouseEvent.CLICK, AcceptInvitation);
+				btnCheck.addEventListener(MouseEvent.CLICK,  function addAskedCollaborator():void{
+					var ro:RemoteObject = new RemoteObject();
+					ro.destination = "userDAO";
+					ro.removeAskingCollaborator.addEventListener("result", getDefaultUserResultHandler);	
+					ro.removeAskingCollaborator.addEventListener("fault", faultHandler);	
+					ro.removeAskingCollaborator(userId, id);		
+					
+					var ro2:RemoteObject = new RemoteObject();
+					ro2.destination = "userDAO";
+					ro2.addCollaborator.addEventListener("result", getDefaultUserResultHandler);	
+					ro2.addCollaborator.addEventListener("fault", faultHandler);	
+					ro2.addCollaborator(userId, id);
+					
+					/*var hbox:HBox = myVboxCollaborator.getChildByName("HboxAsking"+id) as HBox;
+					hbox.removeAllChildren();*/
+					
+					RejectInvitation(id);
+					addCollaborator(userId, id, fname, lname);
+				});
 				
 				var btnRemove:Image = new Image();
 				btnRemove.width=24;
@@ -189,7 +243,16 @@
 				btnRemove.name=id.toString();
 				btnRemove.load(this._imgRemoveWhite);
 				btnRemove.buttonMode=true;
-				btnRemove.addEventListener(MouseEvent.CLICK, RejectInvitation);
+				btnRemove.addEventListener(MouseEvent.CLICK, function removeCollaborator():void{
+					var ro:RemoteObject = new RemoteObject();
+					ro.destination = "userDAO";
+					ro.removeAskingCollaborator.addEventListener("result", getDefaultUserResultHandler);	
+					ro.removeAskingCollaborator.addEventListener("fault", faultHandler);	
+					ro.removeAskingCollaborator(userId, id);	
+					
+					RejectInvitation(id);
+				});
+				
 				
 				
 				var myCanvas:Canvas = new Canvas();
@@ -221,9 +284,10 @@
 				Alert.show('todo accept invitation');
 			}
 			
-			private function RejectInvitation(e:Event):void
+			private function RejectInvitation(id:int):void
 			{
-				Alert.show('todo reject invitation');
+				var hbox:HBox = myVboxAsking.getChildByName("HboxAsking"+id) as HBox;
+				hbox.removeAllChildren();
 			}
 			
 			private function HighlightBackgroundInvit(e:Event):void {
@@ -273,7 +337,7 @@
 			/**
 			 * Open the edit popup and close 
 			 */
-			private function OpenEditPopUp(e:Event):void {
+			private function OpenEditPopUp(e:Event, id:int, userId:int):void {
 				var editBtn:Image = e.currentTarget as Image;
 				
 				if(_lastOpenedEditButton == null){
@@ -287,7 +351,7 @@
 				if(_openEditPopUp == null)
 				{
 					editBtn.load(_imgEditOver);
-					configureEditPopUP(editBtn);
+					configureEditPopUP(editBtn, id, userId);
 					this['globalCanvasCollaborator'].addChild(_openEditPopUp);
 				}
 				else {
@@ -302,16 +366,15 @@
 				_openEditPopUp = null;
 			}
 			
-			
 			/**
 			 * @todo refactored to show admin only when the user is the group admin
 			 * Configure the edit popup with right submenu
 			 */
-			private function configureEditPopUP(editBtn:Image):void {
+			private function configureEditPopUP(editBtn:Image, id:int, userId:int):void {
 				
 				_openEditPopUp = new Canvas();
 				_openEditPopUp.width=130;
-				_openEditPopUp.height=70;
+				_openEditPopUp.height=35;
 				_openEditPopUp.setStyle("backgroundColor", "#f0eded");
 				_openEditPopUp.x=0;
 				_openEditPopUp.y=editBtn.parent.parent.y+34;
@@ -328,28 +391,17 @@
 				quitGroupMenu.buttonMode=true;
 				quitGroupMenu.addEventListener(MouseEvent.MOUSE_OVER, HighlightMenuLabelBackground);
 				quitGroupMenu.addEventListener(MouseEvent.MOUSE_OUT, DarkenMenuLabelBackground);
-				quitGroupMenu.addEventListener(MouseEvent.CLICK, function test(e:Event):void{
-					leaveGroupAction(e, editBtn.name);
-				});
-				
-				var adminGroupMenu:Label = new Label();
-				adminGroupMenu.width=130;
-				adminGroupMenu.height=25;
-				adminGroupMenu.text="Admin the group";
-				adminGroupMenu.setStyle("textAlign", "center");
-				adminGroupMenu.setStyle("color", "#000000");
-				adminGroupMenu.setStyle("fontWeight", "bold");
-				adminGroupMenu.setStyle("verticalAlign", "middle");
-				adminGroupMenu.y=35;
-				adminGroupMenu.buttonMode=true;
-				adminGroupMenu.addEventListener(MouseEvent.MOUSE_OVER, HighlightMenuLabelBackground);
-				adminGroupMenu.addEventListener(MouseEvent.MOUSE_OUT, DarkenMenuLabelBackground);
-				adminGroupMenu.addEventListener(MouseEvent.CLICK, function test(e:Event):void{
-					leaveGroupAction(e, editBtn.name);
+				quitGroupMenu.addEventListener(MouseEvent.CLICK, function removeCollab():void{
+					var ro:RemoteObject = new RemoteObject();
+					ro.destination = "userDAO";
+					ro.removeCollaborator.addEventListener("result", getDefaultUserResultHandler);	
+					ro.removeCollaborator.addEventListener("fault", faultHandler);	
+					ro.removeCollaborator(userId, id);	
+					
+					leaveGroupAction(editBtn.name);
 				});
 				
 				_openEditPopUp.addChild(quitGroupMenu);
-				_openEditPopUp.addChild(adminGroupMenu);
 			}
 			
 			
@@ -359,10 +411,9 @@
 				link.setStyle("color", "#ffffff");
 			}
 			
-			private function leaveGroupAction(e:Event, id:String):void {
+			private function leaveGroupAction(id:String):void {
 //				var vbox:VBox = this['myVboxCollaborator'];
 				var hbox:HBox = myVboxCollaborator.getChildByName("Hbox"+id) as HBox;
-				Alert.show(hbox.toString());
 				hbox.removeAllChildren();
 				CloseEditPopUp();
 			}
@@ -378,14 +429,17 @@
 		]]>
 	</fx:Script>
 	<mx:Button id="btnUpload" x="555" y="10" width="171" height="30" label="Find collaborators"
-			   color="#FFFFFF" fontSize="15" fontWeight="bold"
-			   textRollOverColor="#ffb400" click="btnFindCollaborator_clickHandler(event)"/>
-	<s:Label x="6" y="14" fontFamily="Arial" fontSize="18" fontWeight="normal" text="My Collaborators"/>
+			   click="btnFindCollaborator_clickHandler(event)" color="#FFFFFF" fontSize="15"
+			   fontWeight="bold" textRollOverColor="#ffb400"/>
+	<s:Label x="6" y="14" fontFamily="Arial" fontSize="18" fontWeight="normal"
+			 text="My Collaborators"/>
 	<s:Label x="800" y="14" fontFamily="Arial" fontSize="18" fontWeight="normal" text="Invitations"/>
 	<mx:Canvas id="globalCanvasAsking" x="800" y="46" borderVisible="true">
-		<mx:VBox id="myVboxAsking" x="5" y="10" width="300" height="700" verticalAlign="top" direction="vertical" maxWidth="300" />
+		<mx:VBox id="myVboxAsking" x="5" y="10" width="300" height="700" maxWidth="300"
+				 direction="vertical" verticalAlign="top"/>
 	</mx:Canvas>
 	<mx:Canvas id="globalCanvasCollaborator" x="6" y="46">
-		<mx:VBox id="myVboxCollaborator" x="5" y="10" width="720" height="700" verticalAlign="top" direction="vertical" maxWidth="720" />
+		<mx:VBox id="myVboxCollaborator" x="5" y="10" width="720" height="700" maxWidth="720"
+				 direction="vertical" verticalAlign="top"/>
 	</mx:Canvas>
 </s:Group>
