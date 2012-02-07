@@ -115,15 +115,19 @@
 				this.activeButton.x=460;
 				this.activeButton.setStyle("color", "#26afbc");
 				this.activeButton.setStyle("textRollOverColor", "#26afbc");
-				this.activeButton.addEventListener(MouseEvent.CLICK,function askUserToCollaborator(e:Event):void { 
+				this.activeButton.addEventListener(MouseEvent.CLICK, function askUserToCollaborator(e:Event):void { 
 				getResult.token = userDAO.askUserToCollaborator(id_session,id); 
-				this.visible = false;
+				closePopup();
+
 				});
 				
-				
-			
-				
+					
 				myCanvas.addChild(this.activeButton);
+			}
+			
+			protected function closePopup():void
+			{
+				this.visible = false;
 			}
 
 			private function DarkenBackground(e:Event):void {
@@ -199,4 +203,3 @@
 	
 	
 </mx:TitleWindow>
-
