@@ -120,11 +120,12 @@
 			
 			protected function getUser_resultHandler(e:ResultEvent):void
 			{
-				var user:User = e.result as User;
+				var user = e.result;
 				var ro:RemoteObject = new RemoteObject();
 				ro.destination = "fileDAO";
 				ro.getUser.addEventListener("fault", faultHandler);
-				ro.shareFileWithUser(user as User,Files.id_selected_file);
+				ro.shareFileWithUser(user,Files.id_selected_file);
+				Alert.show(Files.id_selected_file+"");
 				closePopup();
 				
 			}
