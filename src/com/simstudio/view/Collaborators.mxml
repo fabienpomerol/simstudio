@@ -73,24 +73,20 @@
 					//Alert.show("Groups empty");
 				}else{
 					try{
-						if(ask1.length > 0)
-						{
+						if(ask1.length > 0){
 							var item:Object = ask1.pop();
 							addCollaboratorAsking(userId, item.id, item.firstName, item.lastName);
 							processNextItemAskCollaborator(userId, ask1, ask2);
 						}
-						else
-						{
+						else{
 							var item:Object = ask2.pop();
 							addCollaboratorAsking(userId, item.id, item.firstName, item.lastName);
 							processNextItemAskCollaborator(userId, ask1, ask2);
 						}
 						
-					}catch(err:Error)
-					{
+					}catch(err:Error){
 						Alert.show('2 :'+err.message);
 					}
-					
 				}	
 			}
 			
