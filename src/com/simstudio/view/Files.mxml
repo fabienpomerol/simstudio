@@ -18,11 +18,11 @@
 		<![CDATA[
 			import com.simstudio.popup.PopupLogin;
 			import com.simstudio.popup.PopupShareFile;
-			
 			import mx.containers.Canvas;
 			import mx.containers.HBox;
 			import mx.controls.Alert;
 			import mx.controls.Image;
+			import mx.core.FlexGlobals;
 			import mx.core.IFlexDisplayObject;
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
@@ -35,7 +35,7 @@
 			import spark.formatters.NumberFormatter;
 			
 			import valueObjects.File;
-			
+
 			private var fileRef:FileReference;
 			
 			private const FILE_UPLOAD_URL:String = "http://localhost:8080/Upload/WebContent/WEB-INF/upload.jsp";
@@ -57,6 +57,8 @@
 			
 			public var asService:RemoteObject;
 			
+			[Bindable] public static var id_selected_file:int;
+			
 			private function resultHandler(result:ResultEvent):void {
 
 				var t:Object = result.result;
@@ -67,15 +69,26 @@
 				}
 			}
 			
+			
 			private function init():void {
-
-				getFilesResult.token = fileDAO.getFiles();
 				
+				getFilesResult.token = fileDAO.getFiles();
 				fileRef = new FileReference();
 				fileRef.addEventListener(Event.SELECT, fileRef_select);
 				fileRef.addEventListener(ProgressEvent.PROGRESS, fileRef_progress);
 				fileRef.addEventListener(Event.COMPLETE, fileRef_complete);
 				
+				
+			}
+			
+			protected function saveSessionResultHandler(e:ResultEvent):void
+			{
+				var id_file_selected:String = e.result as String;
+			}
+			
+			protected function faultHandler(e:ResultEvent):void
+			{
+				Alert.show('Ooops!! It seem that you have a session error.');
 			}
 			
 			private function browseAndUpload():void {
@@ -207,6 +220,7 @@
 			 * @todo refactored to show admin only when the user is the group admin
 			 * Configure the edit popup with right submenu
 			 */
+			
 			private function configureEditPopUP(editBtn:Image):void {
 				_openEditPopUp = new Canvas();
 				_openEditPopUp.width=130;
@@ -228,6 +242,7 @@
 				shareFileMenu.addEventListener(MouseEvent.MOUSE_OVER, HighlightMenuLabelBackground);
 				shareFileMenu.addEventListener(MouseEvent.MOUSE_OUT, DarkenMenuLabelBackground);
 				shareFileMenu.addEventListener(MouseEvent.CLICK, btnShare_clickHandler);
+				id_selected_file = int(editBtn.name);
 				
 				var deleteFileMenu:spark.components.Label = new spark.components.Label();
 				deleteFileMenu.width=130;
@@ -296,6 +311,7 @@
 				link.setStyle("color", "#000000");
 			}
 			
+			
 			/**
 			 * handler on the share button in the editpopup
 			 */
@@ -303,6 +319,7 @@
 			{
 				var pop:IFlexDisplayObject = PopUpManager.createPopUp(this, PopupShareFile, true);
 				PopUpManager.centerPopUp(pop);
+	
 			}
 			
 			/**
@@ -328,6 +345,7 @@
 			
 		]]>
 	</fx:Script>
+ 
 	<mx:Canvas id="globalCanvas" x="1" y="52">
 	<mx:VBox id="myVbox" x="5" y="10" width="720" height="700" verticalAlign="top" direction="vertical" maxWidth="720" />
 	<!--<mx:HBox id="myHbox" x="5" y="10" width="1214" height="700" verticalAlign="top" direction="vertical" maxWidth="720" />-->
