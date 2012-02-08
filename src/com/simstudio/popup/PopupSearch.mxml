@@ -13,6 +13,7 @@
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
 			
 			import valueObjects.File;
 			import valueObjects.Group;
@@ -57,13 +58,13 @@
 				//myCanvas.addChild(myBtn);
 				myCanvas.addEventListener(MouseEvent.ROLL_OVER, function HighlightBackgroundTest(e:Event):void{
 					if (type == 'user') {
-						HighlightBackground(e, 'Add collaborator');
+						HighlightBackground(e, 'Add collaborator', id, fileName, type);
 					}
 					else if (type == 'file') {
-						HighlightBackground(e, 'Collaborate');
+						HighlightBackground(e, 'Collaborate', id, fileName, type);
 					}
 					else if (type == 'group') {
-						HighlightBackground(e, 'Ask invitation');
+						HighlightBackground(e, 'Ask invitation', id, fileName, type);
 					}
 					
 				});
@@ -77,7 +78,7 @@
 				myVbox.addChild(myHbox);
 			}
 			
-			private function HighlightBackground(e:Event, buttonName:String):void {
+			private function HighlightBackground(e:Event, buttonName:String, id:int, fileName:String, type:String):void {
 
 				var myCanvas:Canvas = e.currentTarget as Canvas;
 				myCanvas.setStyle("backgroundColor", "#989898");
@@ -90,6 +91,44 @@
 				this.activeButton.x=460;
 				this.activeButton.setStyle("color", "#26afbc");
 				this.activeButton.setStyle("textRollOverColor", "#26afbc");
+				if(buttonName == 'Add collaborator')
+				{
+					this.activeButton.addEventListener(MouseEvent.CLICK, function askUserToCollaborator(e:Event):void {
+						var ro:RemoteObject = new RemoteObject();
+						ro.destination = "sessionDAO";
+						ro.getSessionAttribute.addEventListener("result", function getUser(e:ResultEvent){
+							var user = e.result;
+							getResult.token = userDAO.askUserToCollaborator(user.id,id); 
+						});	
+						ro.getSessionAttribute('user');
+						
+						this.visible = false;
+					});
+				}
+				else if(buttonName == "Ask invitation"){
+					
+					this.activeButton.addEventListener(MouseEvent.CLICK, function askUserToCollaborator(e:Event):void {
+						var ro:RemoteObject = new RemoteObject();
+						ro.destination = "sessionDAO";
+						
+						ro.getSessionAttribute.addEventListener("result", function getUser(e:ResultEvent){
+							var user = e.result;
+							var ro:RemoteObject = new RemoteObject();
+							ro.destination = "groupDAO";
+							
+							ro.getGroupById.addEventListener("result", function getGroup(result:ResultEvent){
+								var group:Group = result.result as Group;
+								getResult.token = userDAO.askToJoinGroup(user.id, group); 
+							});	
+							
+							ro.getGroupById(id);
+						});	
+						
+						ro.getSessionAttribute('user');
+						this.visible = false;
+					});
+					
+				}
 				myCanvas.addChild(this.activeButton)
 			}
 			

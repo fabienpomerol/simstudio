@@ -31,8 +31,6 @@
 				ro.getSessionAttribute.addEventListener("fault", faultHandler);	
 				ro.getSessionAttribute('groupShow');
 				
-				
-				
 				this.addEventListener("showGroup", refresh);
 				
 				//this.groupLabel.text="Mon Group";
@@ -58,6 +56,8 @@
 				this.groupLabel.text=group.name;
 				var groupMessages = group.messages.toArray();
 				processNextItemMessage(groupMessages);
+				var groupCollaborator = group.users_2.toArray();
+				processNextItemCollaborator(groupCollaborator);
 			}
 			
 			
@@ -72,7 +72,21 @@
 						
 					}catch(err:Error)
 					{
-						Alert.show('2 :'+err.message);
+					}
+				}	
+			}
+			
+			protected function processNextItemCollaborator(collaborator:Array):void{
+				if(collaborator.length <= 0){
+					//Alert.show("Mess empty");
+				}else{
+					try{
+						var item:Object = collaborator.pop();
+						addCollaborators(item.id, item.firstName+" "+item.lastName);
+						processNextItemCollaborator(collaborator);
+						
+					}catch(err:Error)
+					{
 					}
 				}	
 			}
@@ -113,9 +127,7 @@
 				}
 				else {
 					month=""+(createdDate.month+1);
-				}
-				
-				
+				}				
 				var createdAt:Label = new Label();
 				createdAt.text = createdDate.date+"/"+month+"/"+createdDate.fullYearUTC+" at "+createdDate.hours+":"+createdDate.minutes;
 				createdAt.setStyle("fontSize", 12);
@@ -156,6 +168,50 @@
 				myHbox.name="Hbox"+id;
 				myHbox.addChild(myCanvas);
 				myVboxActu.addChild(myHbox);
+			}
+			
+			private function addCollaborators(id:int, userName:String):void {
+				
+				var groupLabel:Label = new Label();
+				groupLabel.text = userName;
+				groupLabel.setStyle("fontSize", 12);
+				groupLabel.setStyle("fontWeight", "bold");
+				groupLabel.x = 50;
+				groupLabel.y = 13;
+				groupLabel.buttonMode=true;
+				/*groupLabel.addEventListener(MouseEvent.MOUSE_OVER, HighlightGroupLink);
+				groupLabel.addEventListener(MouseEvent.MOUSE_OUT, DarkenGroupLink);*/
+				groupLabel.addEventListener(MouseEvent.CLICK, function groupResult(e:Event):void{
+				});
+				
+				var myCanvas:Canvas = new Canvas();
+				myCanvas.setStyle("marginTop", "5");
+				myCanvas.setStyle("backgroundColor", "#707070");
+				
+				myCanvas.setStyle("y", 25);
+				myCanvas.width=203;
+				myCanvas.height=35;
+				myCanvas.name="name"+id;
+				myCanvas.addChild(groupLabel);
+				myCanvas.addEventListener(MouseEvent.MOUSE_OVER, HighlightBackground);
+				myCanvas.addEventListener(MouseEvent.MOUSE_OUT, DarkenBackground);
+				
+				var myHbox:HBox = new HBox();
+				myHbox.width=203;
+				myHbox.height=35;
+				myHbox.name="Hbox"+id;
+				myHbox.addChild(myCanvas);
+				vboxCollaborateurs.addChild(myHbox);
+			}
+			
+			private function HighlightBackground(e:Event):void {
+				var myCanvas:Canvas = e.currentTarget as Canvas;
+				myCanvas.setStyle("backgroundColor", "#989898");
+			}
+			
+			private function DarkenBackground(e:Event):void {
+				var myCanvas:Canvas = e.currentTarget as Canvas;
+				myCanvas.setStyle("backgroundColor", "#707070");
 			}
 			
 			protected function openPopUpComment(e:Event):void
