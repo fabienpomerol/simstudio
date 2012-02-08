@@ -7,12 +7,17 @@
 				title="Share a file with a collaborator or a group">
 	<mx:Script>
 		<![CDATA[
+			
+			import com.simstudio.view.Files;
+			
 			import mx.containers.HBox;
 			import mx.controls.Alert;
 			import mx.controls.Button;
+			import mx.core.FlexGlobals;
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
 			
 			import valueObjects.File;
 			import valueObjects.Group;
@@ -33,11 +38,25 @@
 			
 			private function init():void{
 				
+				//Alert.show(Files.id_selected_file);
+			}
+			
+			
+			
+			public function getSessionResultHandler(e:ResultEvent):void
+			{
+				
+			}
+			
+			protected function faultHandler():void
+			{
+				Alert.show('Oops !! An error occurred getting your personnals informations');
 			}
 			
 			private function addGroup(id:int, fileName:String, type:String):void {
 				
 				var groupLabel:Label = new Label();
+				groupLabel.id = id.toString();
 				groupLabel.text = fileName;
 				groupLabel.setStyle("fontSize", 12);
 				groupLabel.setStyle("fontWeight", "bold");
@@ -56,13 +75,8 @@
 				myCanvas.addChild(groupLabel);
 				//myCanvas.addChild(myBtn);
 				myCanvas.addEventListener(MouseEvent.ROLL_OVER, function HighlightBackgroundTest(e:Event):void{
-					if (type == 'user') {
-						HighlightBackground(e, 'Share file with this user');
-					}
 					
-					else if (type == 'group') {
-						HighlightBackground(e, 'Share file with this group');
-					}
+					HighlightBackground(e, id);
 					
 				});
 				
@@ -75,20 +89,47 @@
 				myVbox.addChild(myHbox);
 			}
 			
-			private function HighlightBackground(e:Event, buttonName:String):void {
+			private function HighlightBackground(e:Event, id:int):void {
 				
 				var myCanvas:Canvas = e.currentTarget as Canvas;
 				myCanvas.setStyle("backgroundColor", "#989898");
 				
 				this.activeButton = new Button();
-				this.activeButton.label = buttonName;
+				this.activeButton.label = "Share it";
 				this.activeButton.width=130;
 				this.activeButton.height=20;
 				this.activeButton.y=3;
 				this.activeButton.x=460;
 				this.activeButton.setStyle("color", "#26afbc");
 				this.activeButton.setStyle("textRollOverColor", "#26afbc");
+				
+				this.activeButton.addEventListener(MouseEvent.CLICK, function askUserToCollaborator(e:Event):void { 
+					//getResult.token = fileDAO.shareFileWithUser(userDAO.getUser(id).valueOf(), fileDAO.getFileByID(int(Files.id_selected_file)).valueOf());
+				
+					var ro:RemoteObject = new RemoteObject();
+					ro.destination = "userDAO";
+					ro.getUser.addEventListener("result", getUser_resultHandler);	
+					ro.getUser.addEventListener("fault", faultHandler);	
+					ro.getUser(id);
+				});
+				
 				myCanvas.addChild(this.activeButton)
+			}
+			
+			protected function getUser_resultHandler(e:ResultEvent):void
+			{
+				var user:User = e.result as User;
+				var ro:RemoteObject = new RemoteObject();
+				ro.destination = "fileDAO";
+				ro.getUser.addEventListener("fault", faultHandler);
+				ro.shareFileWithUser(user as User,Files.id_selected_file);
+				closePopup();
+				
+			}
+			
+			protected function closePopup():void
+			{
+				this.visible = false;
 			}
 			
 			private function DarkenBackground(e:Event):void {
@@ -203,5 +244,6 @@
 					   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
 					   result="resultHandler(event, 'group')"
 					   showBusyCursor="true"/>
+	
 	
 </mx:TitleWindow>
