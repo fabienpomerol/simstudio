@@ -106,7 +106,7 @@
 				this.activeButton.setStyle("textRollOverColor", "#26afbc");
 				
 				this.activeButton.addEventListener(MouseEvent.CLICK, function askUserToCollaborator(e:Event):void { 
-					//getResult.token = fileDAO.shareFileWithUser(userDAO.getUser(id).valueOf(), fileDAO.getFileByID(int(Files.id_selected_file)).valueOf());
+					//getResult.token = fileDAO.shareFileWithUser(UserDAO.getUser(id).valueOf(), fileDAO.getFileByID(int(Files.id_selected_file)).valueOf());
 				
 					var ro:RemoteObject = new RemoteObject();
 					ro.destination = "userDAO";
@@ -120,12 +120,15 @@
 			
 			protected function getUser_resultHandler(e:ResultEvent):void
 			{
-				var user = e.result;
+				var user:Object = e.result;
 				var ro:RemoteObject = new RemoteObject();
 				ro.destination = "fileDAO";
+				var us:UserDAO = new UserDAO();
+				us.getUser(10);
 				ro.getUser.addEventListener("fault", faultHandler);
-				ro.shareFileWithUser(user,Files.id_selected_file);
-				Alert.show(Files.id_selected_file+"");
+				ro.shareFileWithUser(user as User,Files.id_selected_file as int);
+				Alert.show("id selected file :"+Files.id_selected_file+"objet user id :"+user.lastName);
+				
 				closePopup();
 				
 			}
