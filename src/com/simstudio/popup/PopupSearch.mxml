@@ -36,7 +36,7 @@
 
 			}
 			
-			private function addGroup(id:int, fileName:String, type:String):void {
+			private function addGroup(id:int, fileName:String, type:String, userActive:User):void {
 				
 				var groupLabel:Label = new Label();
 				groupLabel.text = fileName;
@@ -58,13 +58,55 @@
 				//myCanvas.addChild(myBtn);
 				myCanvas.addEventListener(MouseEvent.ROLL_OVER, function HighlightBackgroundTest(e:Event):void{
 					if (type == 'user') {
-						HighlightBackground(e, 'Add collaborator', id, fileName, type);
+						var userFriends1 = userActive.usersForIdUser1_1.toArray();
+						var userFriends2 = userActive.usersForIdUser2_1.toArray();
+						var userFriends3 = userActive.usersForIdUser1.toArray();
+						var userFriends4 = userActive.usersForIdUser2.toArray();
+						var b:Boolean = true;
+						for (var i:String in userFriends1) {
+							var userFriend:User = userFriends1[i];
+							if(userFriend.id == id)
+								b = false;
+						}
+						for (var i:String in userFriends2) {
+							var userFriend:User = userFriends2[i];
+							if(userFriend.id == id)
+								b = false;
+						}
+						for (var i:String in userFriends3) {
+							var userFriend:User = userFriends3[i];
+							if(userFriend.id == id)
+								b = false;
+						}
+						for (var i:String in userFriends4) {
+							var userFriend:User = userFriends4[i];
+							if(userFriend.id == id)
+								b = false;
+						}
+						if(b)
+							HighlightBackground(e, 'Add collaborator', id, fileName, type);
+						
+						var myCanvas:Canvas = e.currentTarget as Canvas;
+						myCanvas.setStyle("backgroundColor", "#989898");
+						
 					}
 					else if (type == 'file') {
 						HighlightBackground(e, 'Collaborate', id, fileName, type);
 					}
 					else if (type == 'group') {
-						HighlightBackground(e, 'Ask invitation', id, fileName, type);
+						var userGroups = userActive.groups_2.toArray();
+						var b:Boolean = true;
+						for (var i:String in userGroups) {
+							var userGroup = userGroups[i];
+							if(userGroup.id == id)
+								b = false;
+						}
+						if(b)
+							HighlightBackground(e, 'Ask invitation', id, fileName, type);
+						
+						var myCanvas:Canvas = e.currentTarget as Canvas;
+						myCanvas.setStyle("backgroundColor", "#989898");
+					
 					}
 					
 				});
@@ -97,28 +139,33 @@
 						var ro:RemoteObject = new RemoteObject();
 						ro.destination = "sessionDAO";
 						ro.getSessionAttribute.addEventListener("result", function getUser(e:ResultEvent){
-							var user = e.result;
-							getResult.token = userDAO.askUserToCollaborator(user.id,id); 
+								var user = e.result;
+								var ro:RemoteObject = new RemoteObject();
+								ro.destination = "userDAO";
+								ro.askUserToCollaborator.addEventListener("result", AskToJoinGroupResultHandler);	
+								ro.askUserToCollaborator(user.id,id); 
 						});	
 						ro.getSessionAttribute('user');
-						
 						this.visible = false;
 					});
 				}
 				else if(buttonName == "Ask invitation"){
 					
-					this.activeButton.addEventListener(MouseEvent.CLICK, function askUserToCollaborator(e:Event):void {
+					this.activeButton.addEventListener(MouseEvent.CLICK, function askToJoinGroup(e:Event):void {
 						var ro:RemoteObject = new RemoteObject();
 						ro.destination = "sessionDAO";
 						
-						ro.getSessionAttribute.addEventListener("result", function getUser(e:ResultEvent){
+						ro.getSessionAttribute.addEventListener("result", function getUser(e:ResultEvent):void{
 							var user = e.result;
 							var ro:RemoteObject = new RemoteObject();
 							ro.destination = "groupDAO";
 							
-							ro.getGroupById.addEventListener("result", function getGroup(result:ResultEvent){
+							ro.getGroupById.addEventListener("result", function getGroup(result:ResultEvent):void{
 								var group:Group = result.result as Group;
-								getResult.token = userDAO.askToJoinGroup(user.id, group); 
+								var ro:RemoteObject = new RemoteObject();
+								ro.destination = "userDAO";
+								ro.askToJoinGroup.addEventListener("result", AskToJoinGroupResultHandler);	
+								ro.askToJoinGroup(user.id, group);
 							});	
 							
 							ro.getGroupById(id);
@@ -132,10 +179,14 @@
 				myCanvas.addChild(this.activeButton)
 			}
 			
+			private function AskToJoinGroupResultHandler(e:ResultEvent):void{
+				this.activeButton.enabled = false;
+				this.activeButton.label = "Invitation sended";
+			}
+			
 			private function DarkenBackground(e:Event):void {
 				var myCanvas:Canvas = e.currentTarget as Canvas;
 				myCanvas.setStyle("backgroundColor", "#707070");
-				
 				myCanvas.removeChild(this.activeButton);
 			}
 			
@@ -175,35 +226,42 @@
 			}
 			
 			private function resultHandler(result:ResultEvent, type:String):void {
-				
-				if (type == 'user') {
-					var t:Object = result.result;
-					
-					for (var i:String in t) {
-						var user:User = t[i];
-						var label:String = user.firstName+" "+user.lastName+" ("+user.email+")";
-						addGroup(user.id, label, type);
-					}
-				}
-				else if (type == 'file') {
-					var t:Object = result.result;
-					
-					for (var i:String in t) {
-						var file:File = t[i];
-						var label:String = file.name+" ("+file.size+"Mo)";
-						addGroup(file.id, label, type);
-					}
-				}
-				else if (type == 'group') {
-					var t:Object = result.result;
-					
-					for (var i:String in t) {
+				var ro:RemoteObject = new RemoteObject();
+				ro.destination = "sessionDAO";
+				ro.getSessionAttribute.addEventListener("result", function getUser(e:ResultEvent){
+					var userActive:User = e.result as User;
+					if (type == 'user') {
+						var t:Object = result.result;
 						
-						var group:Group = t[i];
-						var label:String = group.name;
-						addGroup(group.id, label, type);
+						for (var i:String in t) {
+							var user:User = t[i];
+							var label:String = user.firstName+" "+user.lastName+" ("+user.email+")";
+							addGroup(user.id, label, type, userActive);
+						}
 					}
-				}
+					else if (type == 'file') {
+						var t:Object = result.result;
+						
+						for (var i:String in t) {
+							var file:File = t[i];
+							var label:String = file.name+" ("+file.size+"Mo)";
+							
+							addGroup(file.id, label, type, userActive);
+						}
+					}
+					else if (type == 'group') {
+						var t:Object = result.result;
+						
+						for (var i:String in t) {
+							
+							var group:Group = t[i];
+							var label:String = group.name;
+							addGroup(group.id, label, type, userActive);
+						}
+					}
+				});	
+				ro.getSessionAttribute('user');
+				
 			}
 			
 		]]>
