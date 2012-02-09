@@ -124,9 +124,9 @@
 				var ro:RemoteObject = new RemoteObject();
 				ro.destination = "fileDAO";
 				ro.getUser.addEventListener("fault", faultHandler);
-				ro.shareFileWithUser(user,Files.id_selected_file);
-				Alert.show(Files.id_selected_file+"");
-				closePopup();
+				ro.shareFileWithUser(user as valueObjects.User,Files.id_selected_file);
+				//Alert.show(Files.id_selected_file+""+user.lastName);
+				//closePopup();
 				
 			}
 			

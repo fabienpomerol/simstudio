@@ -7,6 +7,7 @@
 				title="Search">
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.IList;
 			import mx.containers.HBox;
 			import mx.controls.Alert;
 			import mx.controls.Button;
@@ -36,16 +37,13 @@
 
 			}
 			
-			private function addGroup(id:int, fileName:String, type:String, userActive:User):void {
-				
+			private function addGroup(id:int, fileName:String, type:String, userActive:Object):void {
 				var groupLabel:Label = new Label();
 				groupLabel.text = fileName;
 				groupLabel.setStyle("fontSize", 12);
 				groupLabel.setStyle("fontWeight", "bold");
 				groupLabel.x = 25;
 				groupLabel.y = 5;
-				
-
 				
 				var myCanvas:Canvas = new Canvas();
 				myCanvas.setStyle("marginTop", "5");
@@ -64,36 +62,35 @@
 						var userFriends3 = userActive.usersForIdUser1.toArray();
 						var userFriends4 = userActive.usersForIdUser2.toArray();
 						var b:Boolean = true;
-						for (var i:String in userFriends1) {
-							var userFriend = userFriends1[i];
-							if(userFriend.id == id)
-								b = false;
-						}
-						for (var i:String in userFriends2) {
-							var userFriend = userFriends2[i];
-							if(userFriend.id == id)
-								b = false;
-						}
-						for (var i:String in userFriends3) {
-							var userFriend = userFriends3[i];
-							if(userFriend.id == id)
-								b = false;
-						}
-						for (var i:String in userFriends4) {
-							var userFriend = userFriends4[i];
-							if(userFriend.id == id)
-								b = false;
+							for (var i:String in userFriends1) {
+								var userFriend = userFriends1[i];
+								if(userFriend.id == id)
+									b = false;
+							}
+							for (var i:String in userFriends2) {
+								var userFriend:User = userFriends2[i];
+								if(userFriend.id == id)
+									b = false;
+							}
+							for (var i:String in userFriends3) {
+								var userFriend = userFriends3[i];
+								if(userFriend.id == id)
+									b = false;
+							}
+							for (var i:String in userFriends4) {
+								var userFriend = userFriends4[i];
+								if(userFriend.id == id)
+									b = false;
+							}
+						} catch(err:Error)
+						{
+							Alert.show("Erreur : "+err.message);
 						}
 						if(b)
 							HighlightBackground(e, 'Add collaborator', id, fileName, type, userActive);
 						
 						var myCanvas:Canvas = e.currentTarget as Canvas;
 						myCanvas.setStyle("backgroundColor", "#989898");
-						}catch(err:Error)
-						{
-							Alert.show(err.message);
-						}
-						
 					}
 					else if (type == 'file') {
 						HighlightBackground(e, 'Collaborate', id, fileName, type, userActive);
@@ -105,7 +102,9 @@
 						for (var i:String in userGroups) {
 							var userGroup = userGroups[i];
 							if(userGroup.id == id)
+							{
 								b = false;
+							}
 						}
 						for (var i:String in userGroups2) {
 							var userGroup = userGroups2[i];
@@ -121,7 +120,6 @@
 						myCanvas.setStyle("backgroundColor", "#989898");
 					
 					}
-					
 				});
 				
 				myCanvas.addEventListener(MouseEvent.ROLL_OUT, DarkenBackground);
@@ -133,7 +131,7 @@
 				myVbox.addChild(myHbox);
 			}
 			
-			private function HighlightBackground(e:Event, buttonName:String, id:int, fileName:String, type:String, userActive:User):void {
+			private function HighlightBackground(e:Event, buttonName:String, id:int, fileName:String, type:String, userActive:Object):void {
 
 				var myCanvas:Canvas = e.currentTarget as Canvas;
 				myCanvas.setStyle("backgroundColor", "#989898");
@@ -149,42 +147,27 @@
 				if(buttonName == 'Add collaborator')
 				{
 					this.activeButton.addEventListener(MouseEvent.CLICK, function askUserToCollaborator(e:Event):void {
-						/*var ro:RemoteObject = new RemoteObject();
-						ro.destination = "sessionDAO";
-						ro.getSessionAttribute.addEventListener("result", function getUser(e:ResultEvent){*
-								var user = e.result;*/
-								var ro:RemoteObject = new RemoteObject();
-								ro.destination = "userDAO";
-								ro.askUserToCollaborator.addEventListener("result", AskToJoinGroupResultHandler);	
-								ro.askUserToCollaborator(userActive.id,id); 
-						/*});	
-						ro.getSessionAttribute('user');*/
-						this.visible = false;
+						var ro:RemoteObject = new RemoteObject();
+						ro.destination = "userDAO";
+						ro.askUserToCollaborator.addEventListener("result", AskToJoinGroupResultHandler);	
+						ro.askUserToCollaborator(userActive.id,id); 
 					});
 				}
 				else if(buttonName == "Ask invitation"){
 					
 					this.activeButton.addEventListener(MouseEvent.CLICK, function askToJoinGroup(e:Event):void {
-						/*var ro:RemoteObject = new RemoteObject();
-						ro.destination = "sessionDAO";
+						var ro:RemoteObject = new RemoteObject();
+						ro.destination = "groupDAO";
 						
-						ro.getSessionAttribute.addEventListener("result", function getUser(e:ResultEvent):void{
-							var user = e.result;*/
+						ro.getGroupById.addEventListener("result", function getGroup(result:ResultEvent):void{
+							var group:Group = result.result as Group;
 							var ro:RemoteObject = new RemoteObject();
-							ro.destination = "groupDAO";
-							
-							ro.getGroupById.addEventListener("result", function getGroup(result:ResultEvent):void{
-								var group:Group = result.result as Group;
-								var ro:RemoteObject = new RemoteObject();
-								ro.destination = "userDAO";
-								ro.askToJoinGroup.addEventListener("result", AskToJoinGroupResultHandler);	
-								ro.askToJoinGroup(userActive.id, group);
-							});	
-							
-							ro.getGroupById(id);
-						/*});	
+							ro.destination = "userDAO";
+							ro.askToJoinGroup.addEventListener("result", AskToJoinGroupResultHandler);	
+							ro.askToJoinGroup(userActive.id, group);
+						});	
 						
-						ro.getSessionAttribute('user');*/
+						ro.getGroupById(id);
 						this.visible = false;
 					});
 					
@@ -193,8 +176,10 @@
 			}
 			
 			private function AskToJoinGroupResultHandler(e:ResultEvent):void{
-				this.activeButton.enabled = false;
-				this.activeButton.label = "Invitation sended";
+				/*var ev:Event = new Event("click");
+				searchButton_click(ev);
+				/*this.activeButton.enabled = false;
+				this.activeButton.label = "Invitation sended";*/
 			}
 			
 			private function DarkenBackground(e:Event):void {
@@ -222,60 +207,82 @@
 				myVbox.removeAllChildren();
 				
 				if (comboType.selectedLabel == "Collaborator" && inputSearchTerm.text != "") {
-					
-					getResult.token = userDAO.findUserByUsernameOrEmail(inputSearchTerm.text);
+					var ro:RemoteObject = new RemoteObject();
+					ro.destination = "userDAO";
+					ro.findUserByUsernameOrEmail.addEventListener("result", searchBtnUserResultHandler);	
+					ro.findUserByUsernameOrEmail(inputSearchTerm.text);
 				}
 				else if (comboType.selectedLabel == "File" && inputSearchTerm.text != "") {
-					
-					getResult.token = fileDAO.findFileByName(inputSearchTerm.text);
+					var ro:RemoteObject = new RemoteObject();
+					ro.destination = "fileDAO";
+					ro.findFileByName.addEventListener("result", searchBtnFileResultHandler);	
+					ro.findFileByName(inputSearchTerm.text);
 					
 				}
 				else if (comboType.selectedLabel == "Group" && inputSearchTerm.text != "") {
-					
-					getResult.token = groupDAO.findGroupByName(inputSearchTerm.text);
+					var ro:RemoteObject = new RemoteObject();
+					ro.destination = "groupDAO";
+					ro.findGroupByName.addEventListener("result", searchBtnGroupResultHandler);	
+					ro.findGroupByName(inputSearchTerm.text);
 				}
 				
 				
 			}
 			
-			private function resultHandler(result:ResultEvent, type:String):void {
+			private function searchBtnUserResultHandler(result:ResultEvent):void {
 				var ro:RemoteObject = new RemoteObject();
 				ro.destination = "sessionDAO";
 				ro.getSessionAttribute.addEventListener("result", function getUser(e:ResultEvent){
-					var userActive:User = e.result as User;
-					if (type == 'user') {
-						var t:Object = result.result;
-						
-						for (var i:String in t) {
-							var user:User = t[i];
-							var label:String = user.firstName+" "+user.lastName+" ("+user.email+")";
-							addGroup(user.id, label, type, userActive);
-						}
-					}
-					else if (type == 'file') {
-						var t:Object = result.result;
-						
-						for (var i:String in t) {
-							var file:File = t[i];
-							var label:String = file.name+" ("+file.size+"Mo)";
-							
-							addGroup(file.id, label, type, userActive);
-						}
-					}
-					else if (type == 'group') {
-						var t:Object = result.result;
-						
-						for (var i:String in t) {
-							
-							var group:Group = t[i];
-							var label:String = group.name;
-							addGroup(group.id, label, type, userActive);
-						}
+					var userActive = e.result;
+					var t:Object = result.result;
+					for (var i:String in t) {
+						var user = t[i];
+						var label:String = user.firstName+" "+user.lastName+" ("+user.email+")";
+						addGroup(user.id, label, "user", userActive);
 					}
 				});	
 				ro.getSessionAttribute('user');
 				
 			}
+			
+			private function searchBtnGroupResultHandler(result:ResultEvent):void {
+				var ro:RemoteObject = new RemoteObject();
+				ro.destination = "sessionDAO";
+				ro.getSessionAttribute.addEventListener("result", function getUser(e:ResultEvent){
+					try{
+						var userActive = e.result;
+						var t:Object = result.result;
+						for (var i:String in t) {
+							var group = t[i];
+							
+							var label:String = group.name;
+							addGroup(group.id, label, 'group', userActive);
+						}
+					} catch(err:Error)
+					{
+						Alert.show(err.message);
+					}
+				});	
+				ro.getSessionAttribute('user');
+				
+			}
+			
+			private function searchBtnFileResultHandler(result:ResultEvent):void {
+				var ro:RemoteObject = new RemoteObject();
+				ro.destination = "sessionDAO";
+				ro.getSessionAttribute.addEventListener("result", function getUser(e:ResultEvent){
+					var t:Object = result.result;
+					var userActive = e.result;
+					
+					for (var i:String in t) {
+						var file = t[i];
+						var label:String = file.name+" ("+file.size+"Mo)";
+						addGroup(file.id, label, "file", userActive);
+					}
+				});	
+				ro.getSessionAttribute('user');
+			}
+			
 			
 		]]>
 	</mx:Script>
@@ -308,17 +315,6 @@
 	</mx:VBox>
 	
 	<mx:CallResponder id="getResult"/>
-	<services:UserDAO id="userDAO"
-					  fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
-					  result="resultHandler(event, 'user')"
-					  showBusyCursor="true"/>
-	<services:FileDAO id="fileDAO"
-					  fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
-					  result="resultHandler(event, 'file')"
-					  showBusyCursor="true"/>
-	<services:GroupDAO id="groupDAO"
-					  fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
-					  result="resultHandler(event, 'group')"
-					  showBusyCursor="true"/>
+	
 	
 </mx:TitleWindow>
