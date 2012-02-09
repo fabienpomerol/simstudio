@@ -8,7 +8,7 @@
 		<mx:CallResponder id="getFilesResult"/>
 		<services:FileDAO id="fileDAO"
 						  fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
-						  result="resultHandler(event)"
+						  result="resultHandler(Object)"
 						  showBusyCursor="true"/>
 		
 	</fx:Declarations>
@@ -18,6 +18,7 @@
 		<![CDATA[
 			import com.simstudio.popup.PopupLogin;
 			import com.simstudio.popup.PopupShareFile;
+			
 			import mx.containers.Canvas;
 			import mx.containers.HBox;
 			import mx.controls.Alert;
@@ -30,11 +31,13 @@
 			
 			import services.FileDAO;
 			import services.MessageDAO;
+			import services.UserDAO;
 			
 			import spark.components.Label;
 			import spark.formatters.NumberFormatter;
 			
 			import valueObjects.File;
+			import valueObjects.User;
 
 			private var fileRef:FileReference;
 			
@@ -59,9 +62,9 @@
 			
 			[Bindable] public static var id_selected_file:int;
 			
-			private function resultHandler(result:ResultEvent):void {
+			private function resultHandler(t:Object):void {
 
-				var t:Object = result.result;
+				//var t:Object = result.result;
 				
 				for (var i:String in t) {
 					var file:File = t[i];
@@ -72,12 +75,25 @@
 			
 			private function init():void {
 				
-				getFilesResult.token = fileDAO.getFiles();
+				var ro:RemoteObject = new RemoteObject();
+				ro.destination = "sessionDAO";
+				ro.getSessionAttribute.addEventListener("result", getSessionResultHandler);	
+				ro.getSessionAttribute.addEventListener("fault", faultHandler);	
+				ro.getSessionAttribute('user');
+				
+			}
+			
+			
+			public function getSessionResultHandler(e:ResultEvent):void
+			{
+				var user:User = e.result as User;
+				//FlexGlobals.topLevelApplication.username.text = "Bienvenue "+user.id+" "+user.id;
+				//id_session = user.id;
+				resultHandler(user.files_1);
 				fileRef = new FileReference();
 				fileRef.addEventListener(Event.SELECT, fileRef_select);
 				fileRef.addEventListener(ProgressEvent.PROGRESS, fileRef_progress);
 				fileRef.addEventListener(Event.COMPLETE, fileRef_complete);
-				
 				
 			}
 			
