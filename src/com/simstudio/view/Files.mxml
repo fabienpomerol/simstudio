@@ -148,11 +148,36 @@
 				groupLabel.y = 13;
 				groupLabel.buttonMode=true;
 				
+				var month:String="";
+				var hours:String="";
+				var minutes:String="";
+				
+					
+				if (updatedAt.month+1<10) {
+					month = "0"+(updatedAt.month+1);
+				}
+				else {
+					month=""+(updatedAt.month+1);
+				}
+				if (updatedAt.hours<10) {
+					hours = "0"+(updatedAt.hours);
+				}
+				else {
+					hours=""+(updatedAt.hours);
+				}
+				if (updatedAt.minutes<10) {
+					minutes = "0"+(updatedAt.minutes);
+				}
+				else {
+					minutes = ""+(updatedAt.minutes);
+				}
+				
+				
 				var lastMessageLabel:spark.components.Label = new spark.components.Label();
-				lastMessageLabel.text = "(Modifier le "+updatedAt.date+"/"+updatedAt.month+"/"+updatedAt.fullYear+" "+updatedAt.hours+":"+updatedAt.minutes+":"+updatedAt.seconds+")";
+				lastMessageLabel.text = "(Last modification on "+updatedAt.date+"/"+month+"/"+updatedAt.fullYear+" at "+updatedAt.hours+"h"+updatedAt.minutes+")";
 				lastMessageLabel.setStyle("fontSize", 12);
 				lastMessageLabel.setStyle("fontStyle", "italic");
-				lastMessageLabel.x = 500;
+				lastMessageLabel.x = 450;
 				lastMessageLabel.y = 13;
 				
 				var myCanvas:Canvas = new Canvas();

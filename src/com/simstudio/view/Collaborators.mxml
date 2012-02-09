@@ -196,7 +196,7 @@
 			
 			private function addCollaboratorAsking(userId:int, id:int, fname:String, lname:String):void {
 				var groupLabel:Label = new Label();
-				groupLabel.text = id +" : "+fname+" "+lname;
+				groupLabel.text = fname+" "+lname;
 				groupLabel.name="label";
 				groupLabel.setStyle("fontSize", 12);
 				groupLabel.setStyle("fontWeight", "bold");
@@ -204,10 +204,10 @@
 				groupLabel.y = 13;
 				
 				var btnCheck:Image = new Image();
-				btnCheck.width=35;
-				btnCheck.height=35;
+				btnCheck.width=25;
+				btnCheck.height=18;
 				btnCheck.x=220;
-				btnCheck.y=2;
+				btnCheck.y=9;
 				btnCheck.name=id.toString();
 				btnCheck.load(this._imgCheckWhite);
 				btnCheck.buttonMode=true;
@@ -232,10 +232,10 @@
 				});
 				
 				var btnRemove:Image = new Image();
-				btnRemove.width=24;
-				btnRemove.height=24;
+				btnRemove.width=17;
+				btnRemove.height=17;
 				btnRemove.x=260;
-				btnRemove.y=5;
+				btnRemove.y=10;
 				btnRemove.name=id.toString();
 				btnRemove.load(this._imgRemoveWhite);
 				btnRemove.buttonMode=true;
@@ -268,7 +268,7 @@
 				myCanvas.addEventListener(MouseEvent.MOUSE_OUT, DarkenBackgroundInvit);
 				
 				var myHbox:HBox = new HBox();
-				myHbox.width=720;
+				myHbox.width=300;
 				myHbox.height=37;
 				myHbox.name="HboxAsking"+id;
 				myHbox.addChild(myCanvas);
@@ -372,7 +372,7 @@
 				_openEditPopUp.width=130;
 				_openEditPopUp.height=35;
 				_openEditPopUp.setStyle("backgroundColor", "#f0eded");
-				_openEditPopUp.x=0;
+				_openEditPopUp.x=5;
 				_openEditPopUp.y=editBtn.parent.parent.y+34;
 				
 				var quitGroupMenu:Label = new Label();

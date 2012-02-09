@@ -25,6 +25,39 @@
 				PopUpManager.removePopUp(this);
 			}
 			
+			protected function button_clickHandler(event:MouseEvent):void
+			{
+				var ro:RemoteObject = new RemoteObject();
+				ro.destination = "sessionDAO";
+				ro.getSessionAttribute.addEventListener("result", getMessageSessionResultHandler);	
+				ro.getSessionAttribute.addEventListener("fault", faultHandler);	
+				ro.getSessionAttribute('messageID');
+				
+				
+				// TODO Auto-generated method stub
+				this.visible = false;
+				
+			}
+			
+			protected function getMessageSessionResultHandler(e:ResultEvent):void
+			{
+				var idMess = e.result;
+				var ro:RemoteObject = new RemoteObject();
+				ro.destination = "messageDAO";
+				ro.getMessageById.addEventListener("result", getMessageSessionResultHandler);	
+				ro.getSessionAttribute.addEventListener("fault", faultHandler);	
+				ro.getSessionAttribute('messageID');
+					
+				// TODO Auto-generated method stub
+				this.visible = false;
+				
+			}
+			
+			protected function faultHandler(e:ResultEvent):void
+			{
+				Alert.show('Ooops!! It seem that you have an asyncprocess error.');
+			}
+			
 		]]>
 	</mx:Script>
 	
@@ -36,7 +69,7 @@
 		
 		<mx:FormItem width="449" height="65" textAlign="center" paddingLeft="150" paddingTop="15">
 			<mx:Button id="button" width="112" height="45" label="Add" chromeColor="#FF9C00"
-					    color="#FFFFFF" enabled="true"
+					   click="button_clickHandler(event)" color="#FFFFFF" enabled="true"
 					   focusColor="#FFF5F5" fontSize="16" fontWeight="bold"/>
 		</mx:FormItem>
 	</mx:Form>

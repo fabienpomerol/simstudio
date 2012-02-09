@@ -68,7 +68,7 @@
 									b = false;
 							}
 							for (var i:String in userFriends2) {
-								var userFriend:User = userFriends2[i];
+								var userFriend = userFriends2[i];
 								if(userFriend.id == id)
 									b = false;
 							}
@@ -84,7 +84,6 @@
 							}
 						} catch(err:Error)
 						{
-							Alert.show("Erreur : "+err.message);
 						}
 						if(b)
 							HighlightBackground(e, 'Add collaborator', id, fileName, type, userActive);

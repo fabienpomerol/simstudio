@@ -16,6 +16,7 @@
 			import mx.controls.Alert;
 			import mx.controls.Button;
 			import mx.controls.Text;
+			import mx.core.FlexGlobals;
 			import mx.core.IFlexDisplayObject;
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
@@ -31,13 +32,7 @@
 				ro.getSessionAttribute.addEventListener("fault", faultHandler);	
 				ro.getSessionAttribute('groupShow');
 				
-				this.addEventListener("showGroup", refresh);
-				
-				//this.groupLabel.text="Mon Group";
-				/*addMessages(5, 'Fabien Pomerol', 'orem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum urna dolor, congue vitae ultrices sed, tincidunt sed metus. Morbi vitae elit vel massa porttitor dignissim. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. In orci tellus, rutrum in commodo at, placerat sit amet elit. Phasellus sit amet enim sem. Mauris aliquam accumsan est, id fermentum turpis tincidunt nec. Nullam pharetra tristique aliquet. Donec turpis magna, iaculis eu faucibus eu, pretium quis tellus. Phasellus volutpat lorem eget neque ornare ac dignissim mi interdum. Duis nec mollis sapien. Proin in ipsum nec eros elementum consectetur. Mauris fringilla tellus vel dui vestibulum ac porta purus vestibulum. Vivamus ac turpis urna. Duis vestibulum condimentum mauris, ut luctus quam');
-				addMessages(5, 'Fabien Pomerol', 'orem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum urna dolor, congue vitae ultrices sed, tincidunt sed metus. Morbi vitae elit vel massa porttitor dignissim. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. In orci tellus, rutrum in commodo at, placerat sit amet elit. Phasellus sit amet enim sem. Mauris aliquam accumsan est, id fermentum turpis tincidunt nec. Nullam pharetra tristique aliquet. Donec turpis magna, iaculis eu faucibus eu, pretium quis tellus. Phasellus volutpat lorem eget neque ornare ac dignissim mi interdum. Duis nec mollis sapien. Proin in ipsum nec eros elementum consectetur. Mauris fringilla tellus vel dui vestibulum ac porta purus vestibulum. Vivamus ac turpis urna. Duis vestibulum condimentum mauris, ut luctus quam');
-				addMessages(5, 'Fabien Pomerol', 'orem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum urna dolor, congue vitae ultrices sed, tincidunt sed metus. Morbi vitae elit vel massa porttitor dignissim. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. In orci tellus, rutrum in commodo at, placerat sit amet elit. Phasellus sit amet enim sem. Mauris aliquam accumsan est, id fermentum turpis tincidunt nec. Nullam pharetra tristique aliquet. Donec turpis magna, iaculis eu faucibus eu, pretium quis tellus. Phasellus volutpat lorem eget neque ornare ac dignissim mi interdum. Duis nec mollis sapien. Proin in ipsum nec eros elementum consectetur. Mauris fringilla tellus vel dui vestibulum ac porta purus vestibulum. Vivamus ac turpis urna. Duis vestibulum condimentum mauris, ut luctus quam');
-				*/
+				FlexGlobals.topLevelApplication.addEventListener("showGroup", refresh);
 			}
 			
 			protected function getSessionGroupIdResultHandler(e:ResultEvent)
@@ -94,6 +89,7 @@
 			
 			protected function refresh():void
 			{
+				Alert.show('toto');
 				var ro:RemoteObject = new RemoteObject();
 				ro.getSessionAttribute.addEventListener("result", getSessionResultHandler);	
 				ro.getSessionAttribute.addEventListener("fault", faultHandler);	
@@ -151,7 +147,15 @@
 				commentBtn.width = 100;
 				commentBtn.bottom = 10;
 				commentBtn.x = 40;
-				commentBtn.addEventListener(MouseEvent.CLICK, openPopUpComment);
+				commentBtn.addEventListener(MouseEvent.CLICK, function openPopUpComment(e:Event):void
+				{
+					var ro:RemoteObject = new RemoteObject();
+					ro.destination = "sessionDAO";
+					ro.saveSessionAttribute.addEventListener("fault", faultHandler);	
+					ro.saveSessionAttribute('messageID', id);
+					var pop:IFlexDisplayObject = PopUpManager.createPopUp(this, PopupComment, true);
+					PopUpManager.centerPopUp(pop);
+				});
 
 				var myCanvas:Canvas = new Canvas();
 				myCanvas.setStyle("marginTop", "5");
@@ -214,11 +218,6 @@
 				myCanvas.setStyle("backgroundColor", "#707070");
 			}
 			
-			protected function openPopUpComment(e:Event):void
-			{
-				var pop:IFlexDisplayObject = PopUpManager.createPopUp(this, PopupComment, true);
-				PopUpManager.centerPopUp(pop);
-			}
 		]]>
 
 	</fx:Script>

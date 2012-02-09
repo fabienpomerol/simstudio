@@ -44,7 +44,7 @@
 				var user:User = e.result as User;
 				FlexGlobals.topLevelApplication.btnLogin.setVisible(false);
 				FlexGlobals.topLevelApplication.btnSubscription.setVisible(false);
-				FlexGlobals.topLevelApplication.username.text = "Bienvenue "+user.firstName+" "+user.lastName;
+				FlexGlobals.topLevelApplication.username.text = "Welcome "+user.firstName+" "+user.lastName;
 				FlexGlobals.topLevelApplication.username.setVisible(true);
 				FlexGlobals.topLevelApplication.btnSearch.setVisible(true);
 			//	FlexGlobals.topLevelApplication.Account.visible=true;
@@ -78,8 +78,7 @@
 					ro.findUserByEmail(inputEmail.text);
 				}
 				else {
-					Alert.show(existUser.toString());
-					//errorMessage.visible=true;
+					errorMessage.visible=true;
 					inputPassword.text = "";
 				}
 			}

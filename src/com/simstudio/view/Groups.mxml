@@ -164,7 +164,7 @@
 				else
 				{
 					var lastMessageLabel:Label = new Label();
-					lastMessageLabel.text = "Aucun message";
+					lastMessageLabel.text = "No message";
 					lastMessageLabel.setStyle("fontSize", 12);
 					lastMessageLabel.setStyle("fontStyle", "italic");
 					lastMessageLabel.x = 500;
@@ -201,6 +201,7 @@
 				ro.saveSessionAttribute('groupShow', i);
 				
 				FlexGlobals.topLevelApplication.Account.currentState = "group_view";
+				FlexGlobals.topLevelApplication.dispatchEvent(new Event("showGroup"));
 			}
 			
 			protected function saveSessionResultHandler(e:ResultEvent):void {

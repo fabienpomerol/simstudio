@@ -118,11 +118,14 @@
 				var user = e.result;
 				FlexGlobals.topLevelApplication.btnLogin.setVisible(false);
 				FlexGlobals.topLevelApplication.btnSubscription.setVisible(false);
-				FlexGlobals.topLevelApplication.username.text = "Bienvenue "+user.firstName+" "+user.lastName;
+				FlexGlobals.topLevelApplication.username.text = "Welcome "+user.firstName+" "+user.lastName;
 				FlexGlobals.topLevelApplication.username.setVisible(true);
 				FlexGlobals.topLevelApplication.btnSearch.setVisible(true);
 				FlexGlobals.topLevelApplication.Account.visible=true;
-				
+				FlexGlobals.topLevelApplication.dispatchEvent(new Event("refreshUser"));
+				FlexGlobals.topLevelApplication.logo.visible = false;
+				FlexGlobals.topLevelApplication.btnLogout.visible = true;
+				FlexGlobals.topLevelApplication.myMenuBar.visible = true;
 				this.visible = false;
 				
 			}

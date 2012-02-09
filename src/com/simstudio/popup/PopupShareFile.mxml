@@ -106,11 +106,28 @@
 				this.activeButton.setStyle("textRollOverColor", "#26afbc");
 				
 				this.activeButton.addEventListener(MouseEvent.CLICK, function askUserToCollaborator(e:Event):void { 
-					//getResult.token = fileDAO.shareFileWithUser(UserDAO.getUser(id).valueOf(), fileDAO.getFileByID(int(Files.id_selected_file)).valueOf());
 				
 					var ro:RemoteObject = new RemoteObject();
 					ro.destination = "userDAO";
-					ro.getUser.addEventListener("result", getUser_resultHandler);	
+					ro.getUser.addEventListener("result", function getUser_resultHandler(e:ResultEvent):void
+					{
+						try{
+						var user = e.result;
+						var ro:RemoteObject = new RemoteObject();
+						ro.destination = "fileDAO";
+						ro.getUser.addEventListener("fault", faultHandler);
+						ro.getUser.addEventListener("result", resultDefaultHandler);
+						ro.shareFileWithUser(user,126);
+						Alert.show("id selected file :"+Files.id_selected_file+"objet user id :"+user.id);
+						} catch(err:Error)
+						{
+							Alert.show(err.message);
+						}
+						
+						//closePopup();
+						
+						
+					});	
 					ro.getUser.addEventListener("fault", faultHandler);	
 					ro.getUser(id);
 				});
@@ -118,20 +135,8 @@
 				myCanvas.addChild(this.activeButton)
 			}
 			
-			protected function getUser_resultHandler(e:ResultEvent):void
-			{
-				var user:Object = e.result;
-				var ro:RemoteObject = new RemoteObject();
-				ro.destination = "fileDAO";
-				var us:UserDAO = new UserDAO();
-				us.getUser(10);
-				ro.getUser.addEventListener("fault", faultHandler);
-
-				ro.shareFileWithUser(user as User,Files.id_selected_file as int);
-				Alert.show("id selected file :"+Files.id_selected_file+"objet user id :"+user.lastName);
-				
-				closePopup();
-
+			
+			protected function resultDefaultHandler(e:ResultEvent){
 				
 			}
 			
@@ -166,13 +171,22 @@
 				myVbox.removeAllChildren();
 				
 				if (comboType.selectedLabel == "Collaborator" && inputSearchTerm.text != "") {
-					
-					getResult.token = userDAO.findUserByUsernameOrEmail(inputSearchTerm.text);
+					var ro:RemoteObject = new RemoteObject();
+					ro.destination = "userDAO";
+					ro.findUserByUsernameOrEmail.addEventListener("fault", faultHandler);
+					ro.findUserByUsernameOrEmail.addEventListener("result", function handler(result:ResultEvent):void {
+						resultHandler(result, 'user');
+					});
+					ro.findUserByUsernameOrEmail(inputSearchTerm.text);
 				}
-				
 				else if (comboType.selectedLabel == "Group" && inputSearchTerm.text != "") {
-					
-					getResult.token = groupDAO.findGroupByName(inputSearchTerm.text);
+					var ro:RemoteObject = new RemoteObject();
+					ro.destination = "groupDAO";
+					ro.findGroupByName.addEventListener("fault", faultHandler);
+					ro.findGroupByName.addEventListener("result", function handler(result:ResultEvent):void {
+						resultHandler(result, 'group');
+					});
+					ro.findGroupByName(inputSearchTerm.text);
 				}
 				
 				
@@ -181,29 +195,18 @@
 			private function resultHandler(result:ResultEvent, type:String):void {
 				
 				if (type == 'user') {
-					var t:Object = result.result;
+					var t = result.result;
 					
 					for (var i:String in t) {
-						var user:User = t[i];
+						var user = t[i];
 						var label:String = user.firstName+" "+user.lastName+" ("+user.email+")";
 						addGroup(user.id, label, type);
 					}
 				}
-				else if (type == 'file') {
-					var t:Object = result.result;
-					
-					for (var i:String in t) {
-						var file:File = t[i];
-						var label:String = file.name+" ("+file.size+"Mo)";
-						addGroup(file.id, label, type);
-					}
-				}
 				else if (type == 'group') {
-					var t:Object = result.result;
-					
+					var t = result.result;
 					for (var i:String in t) {
-						
-						var group:Group = t[i];
+						var group = t[i];
 						var label:String = group.name;
 						addGroup(group.id, label, type);
 					}
@@ -240,18 +243,6 @@
 	</mx:VBox>
 	
 	<mx:CallResponder id="getResult"/>
-	<services:UserDAO id="userDAO"
-					  fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
-					  result="resultHandler(event, 'user')"
-					  showBusyCursor="true"/>
-	<services:FileDAO id="fileDAO"
-					  fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
-					  result="resultHandler(event, 'file')"
-					  showBusyCursor="true"/>
-	<services:GroupDAO id="groupDAO"
-					   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
-					   result="resultHandler(event, 'group')"
-					   showBusyCursor="true"/>
 	
 	
 </mx:TitleWindow>
