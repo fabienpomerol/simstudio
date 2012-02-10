@@ -53,6 +53,8 @@
 				processNextItemMessage(groupMessages);
 				var groupCollaborator = group.users_2.toArray();
 				processNextItemCollaborator(groupCollaborator);
+				var groupFiles = group.files.toArray();
+				processNextItemFiles(groupFiles);
 			}
 			
 			
@@ -79,6 +81,21 @@
 						var item:Object = collaborator.pop();
 						addCollaborators(item.id, item.firstName+" "+item.lastName);
 						processNextItemCollaborator(collaborator);
+						
+					}catch(err:Error)
+					{
+					}
+				}	
+			}
+			
+			protected function processNextItemFiles(files:Array):void{
+				if(files.length <= 0){
+					//Alert.show("Mess empty");
+				}else{
+					try{
+						var item:Object = files.pop();
+						addFiles(item.id, item.name, item.extension);
+						processNextItemFiles(files);
 						
 					}catch(err:Error)
 					{
@@ -147,14 +164,13 @@
 				commentBtn.width = 100;
 				commentBtn.bottom = 10;
 				commentBtn.x = 40;
-				commentBtn.addEventListener(MouseEvent.CLICK, function openPopUpComment(e:Event):void
+				commentBtn.addEventListener(MouseEvent.CLICK, function openPopUp(e:Event):void
 				{
 					var ro:RemoteObject = new RemoteObject();
 					ro.destination = "sessionDAO";
-					ro.saveSessionAttribute.addEventListener("fault", faultHandler);	
+					ro.saveSessionAttribute.addEventListener("result", openPopUpComment);
+					ro.saveSessionAttribute.addEventListener("fault", faultHandler);
 					ro.saveSessionAttribute('messageID', id);
-					var pop:IFlexDisplayObject = PopUpManager.createPopUp(this, PopupComment, true);
-					PopUpManager.centerPopUp(pop);
 				});
 
 				var myCanvas:Canvas = new Canvas();
@@ -172,6 +188,46 @@
 				myHbox.name="Hbox"+id;
 				myHbox.addChild(myCanvas);
 				myVboxActu.addChild(myHbox);
+			}
+			
+			protected function openPopUpComment(e:Event):void
+			{
+				var pop:IFlexDisplayObject = PopUpManager.createPopUp(this, PopupComment, true);
+				PopUpManager.centerPopUp(pop);
+			}
+			
+			private function addFiles(id:int, name:String, ext:String):void {
+				
+				var groupLabel:Label = new Label();
+				groupLabel.text = name+"."+ext;
+				groupLabel.setStyle("fontSize", 12);
+				groupLabel.setStyle("fontWeight", "bold");
+				groupLabel.x = 50;
+				groupLabel.y = 13;
+				groupLabel.buttonMode=true;
+				/*groupLabel.addEventListener(MouseEvent.MOUSE_OVER, HighlightGroupLink);
+				groupLabel.addEventListener(MouseEvent.MOUSE_OUT, DarkenGroupLink);*/
+				groupLabel.addEventListener(MouseEvent.CLICK, function groupResult(e:Event):void{
+				});
+				
+				var myCanvas:Canvas = new Canvas();
+				myCanvas.setStyle("marginTop", "5");
+				myCanvas.setStyle("backgroundColor", "#707070");
+				
+				myCanvas.setStyle("y", 25);
+				myCanvas.width=201;
+				myCanvas.height=35;
+				myCanvas.name="name"+id;
+				myCanvas.addChild(groupLabel);
+				myCanvas.addEventListener(MouseEvent.MOUSE_OVER, HighlightBackground);
+				myCanvas.addEventListener(MouseEvent.MOUSE_OUT, DarkenBackground);
+				
+				var myHbox:HBox = new HBox();
+				myHbox.width=201;
+				myHbox.height=35;
+				myHbox.name="Hbox"+id;
+				myHbox.addChild(myCanvas);
+				vboxTravaux.addChild(myHbox);
 			}
 			
 			private function addCollaborators(id:int, userName:String):void {

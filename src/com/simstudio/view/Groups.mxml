@@ -49,20 +49,11 @@
 			
 			private var _imgEditOver:String = "assets/edit_black.png";
 			private var _imgEditOut:String = "assets/edit_white.png";
-
-			/*private function resultHandler(result:ResultEvent):void {
-				var items:Object = result.result;
-				var groups:Array = [];
-				for (var i:String in items) {
-					groups.push(items[i]);
-				}
-				processNextItem(groups);
-			}*/
 			
+			private var userr:User;
 			
 			protected function processNextItem(groups:Array):void{
 				if(groups.length <= 0){
-					//Alert.show("Groups empty");
 				}else{
 					try{
 					var item:Object = groups.pop();
@@ -75,7 +66,6 @@
 							addGroup(item.id, item.name, mess);
 						}catch(err:Error)
 						{
-							Alert.show("Erreur pour addGroup : "+item.name+" "+err.message);
 						}
 						processNextItem(groups);
 					}
@@ -84,7 +74,6 @@
 					ro.getLastGroupMessage(item.id);
 					}catch(err:Error)
 					{
-						Alert.show('2 :'+err.message);
 					}
 					
 				}	
@@ -109,14 +98,12 @@
 			private function getUserResultHandler(result:ResultEvent):void{
 				try{
 					var user = result.result;
-					//Alert.show(user.groups_2.getItemAt(1)+"");
+					userr = user as User;
 					var groups = user.groups_2.toArray();
 					
 					processNextItem(groups);
-					//var gr:Array;
 				}
 				catch(err:Error){
-					Alert.show('1 :'+err.message);
 				}
 			}
 			
@@ -291,7 +278,7 @@
 				quitGroupMenu.addEventListener(MouseEvent.MOUSE_OVER, HighlightMenuLabelBackground);
 				quitGroupMenu.addEventListener(MouseEvent.MOUSE_OUT, DarkenMenuLabelBackground);
 				quitGroupMenu.addEventListener(MouseEvent.CLICK, function test(e:Event):void{
-					leaveGroupAction(e, editBtn.name);
+					leaveGroupAction(e, editBtn);
 				});
 				
 				var adminGroupMenu:Label = new Label();
@@ -307,7 +294,7 @@
 				adminGroupMenu.addEventListener(MouseEvent.MOUSE_OVER, HighlightMenuLabelBackground);
 				adminGroupMenu.addEventListener(MouseEvent.MOUSE_OUT, DarkenMenuLabelBackground);
 				adminGroupMenu.addEventListener(MouseEvent.CLICK, function test(e:Event):void{
-					leaveGroupAction(e, editBtn.name);
+					Alert.show("todo Admin the group");
 				});
 				
 				_openEditPopUp.addChild(quitGroupMenu);
@@ -321,12 +308,25 @@
 				link.setStyle("color", "#ffffff");
 			}
 			
-			private function leaveGroupAction(e:Event, id:String):void {
+			var cpt:int = 0;
+			
+			private function leaveGroupAction(e:Event, editBtn:Image):void {
+				cpt = cpt+1;
+				var id:int = parseInt(editBtn.name);
+				var ro:RemoteObject = new RemoteObject();
+				ro.destination = "groupDAO";
+				ro.removeUserFromGroup.addEventListener("fault", faultHandler);
+				ro.removeUserFromGroup.addEventListener("result", function leaveGroup2(ev:ResultEvent):void{
+					//ro2.removeUserFromGroup(userr, group);
+					
+				});	
+				ro.removeUserFromGroup(userr, id)
+				
 				var vbox:VBox = this['myVbox'];
 				var hbox:HBox = vbox.getChildByName("Hbox"+id) as HBox;
-				
-				hbox.removeAllChildren();
+				vbox.removeElement(hbox);
 				CloseEditPopUp();
+			
 			}
 			
 			/**

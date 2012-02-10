@@ -18,6 +18,7 @@
 			import mx.rpc.events.ResultEvent;
 			import mx.rpc.remoting.RemoteObject;
 			
+			import valueObjects.Message;
 			import valueObjects.User;
 			
 			private function closeHandler(event:CloseEvent):void
@@ -25,32 +26,62 @@
 				PopUpManager.removePopUp(this);
 			}
 			
+			var cpt:int=0;
+			
 			protected function button_clickHandler(event:MouseEvent):void
 			{
 				var ro:RemoteObject = new RemoteObject();
 				ro.destination = "sessionDAO";
-				ro.getSessionAttribute.addEventListener("result", getMessageSessionResultHandler);	
+				ro.getSessionAttribute.addEventListener("result", getMessageIdSessionResultHandler);	
 				ro.getSessionAttribute.addEventListener("fault", faultHandler);	
 				ro.getSessionAttribute('messageID');
 				
 				
 				// TODO Auto-generated method stub
-				this.visible = false;
 				
 			}
 			
-			protected function getMessageSessionResultHandler(e:ResultEvent):void
+			protected function getMessageIdSessionResultHandler(e:ResultEvent):void
 			{
 				var idMess = e.result;
 				var ro:RemoteObject = new RemoteObject();
 				ro.destination = "messageDAO";
 				ro.getMessageById.addEventListener("result", getMessageSessionResultHandler);	
-				ro.getSessionAttribute.addEventListener("fault", faultHandler);	
-				ro.getSessionAttribute('messageID');
+				ro.getMessageById.addEventListener("fault", faultHandler);	
+				ro.getMessageById(idMess);
 					
 				// TODO Auto-generated method stub
-				this.visible = false;
 				
+			}
+			
+			protected function getMessageSessionResultHandler(e:ResultEvent):void
+			{
+				try{
+				var mess = e.result;
+				var ro:RemoteObject = new RemoteObject();
+				ro.destination = "sessionDAO";
+				ro.getSessionAttribute.addEventListener("result", function getUserSessionResultHandler(ev:ResultEvent):void
+				{
+					var user = ev.result;
+					var ro:RemoteObject = new RemoteObject();
+					ro.destination = "commentDAO";
+					ro.addComment.addEventListener("result", getDefautlResultHandler);	
+					ro.addComment.addEventListener("fault", faultHandler);	
+					ro.addComment(user, mess, commentContent.text);
+					
+				});	
+				ro.getSessionAttribute.addEventListener("fault", faultHandler);	
+				ro.getSessionAttribute('user');
+				} catch(err:Error)
+				{
+					Alert.show(err.message);
+				}
+				
+			}
+			
+			protected function getDefautlResultHandler(e:ResultEvent):void
+			{
+				this.visible = false;
 			}
 			
 			protected function faultHandler(e:ResultEvent):void
@@ -65,7 +96,8 @@
 	
 	<mx:Form id="formLogin" width="485" height="249" textAlign="right">
 		<mx:FormHeading width="374" label="New comment" fontSize="15" textAlign="left"/>
-		<mx:TextArea width="450" height="112" textAlign="left" paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
+		<mx:TextArea id="commentContent" width="450" height="112" paddingBottom="5" paddingLeft="5"
+					 paddingRight="5" paddingTop="5" textAlign="left"/>
 		
 		<mx:FormItem width="449" height="65" textAlign="center" paddingLeft="150" paddingTop="15">
 			<mx:Button id="button" width="112" height="45" label="Add" chromeColor="#FF9C00"

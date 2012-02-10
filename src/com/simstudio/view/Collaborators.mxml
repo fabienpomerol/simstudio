@@ -410,7 +410,9 @@
 			private function leaveGroupAction(id:String):void {
 //				var vbox:VBox = this['myVboxCollaborator'];
 				var hbox:HBox = myVboxCollaborator.getChildByName("Hbox"+id) as HBox;
-				hbox.removeAllChildren();
+				var vbox:VBox = myVboxCollaborator;
+				vbox.removeElement(hbox);
+				//hbox.removeAllChildren();
 				CloseEditPopUp();
 			}
 			

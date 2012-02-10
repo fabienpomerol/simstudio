@@ -29,7 +29,6 @@
 			
 			
 			protected function init():void{
-				
 				var ro:RemoteObject = new RemoteObject();
 				ro.destination = "sessionDAO";
 				ro.getSessionAttribute.addEventListener("result", getUserResultHandler);	
